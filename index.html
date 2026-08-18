@@ -143,6 +143,25 @@
   .board-stat{font-size:12px;color:var(--text2);text-align:right;min-width:90px;}
   .board-stat b{color:var(--accent);font-family:'Oswald',sans-serif;}
 
+  .bj-table{background:radial-gradient(circle at 50% 0%, #123420, var(--panel) 65%);border:1px solid var(--line);border-radius:16px;padding:24px;max-width:560px;margin:0 auto;}
+  .bj-label{font-size:13px;color:var(--text2);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;}
+  .bj-score{color:var(--accent);font-family:'Oswald',sans-serif;font-size:14px;margin-left:6px;}
+  .bj-hand{display:flex;gap:8px;min-height:96px;flex-wrap:wrap;}
+  .bj-dealer-area{margin-bottom:18px;}
+  .bj-player-area{margin-top:18px;}
+  .bj-card{width:58px;height:82px;border-radius:8px;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:20px;font-weight:600;box-shadow:0 3px 8px rgba(0,0,0,.35);}
+  .bj-card.red{color:#c73a3a;}
+  .bj-card.black{color:#1a1a1a;}
+  .bj-card.hidden{background:linear-gradient(135deg,#2a3138,#1c2126);border:2px solid var(--line);}
+  .bj-result{text-align:center;font-family:'Oswald',sans-serif;font-size:18px;min-height:26px;margin:6px 0;}
+  .bj-result.win{color:var(--legend);}
+  .bj-result.lose{color:var(--myth);}
+  .bj-result.push{color:var(--text2);}
+  .bj-controls{display:flex;gap:10px;justify-content:center;align-items:center;margin-top:14px;flex-wrap:wrap;}
+  .bj-bet-label{font-size:13px;color:var(--text2);}
+  #bjBetInput{width:110px;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:9px 10px;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;}
+  #bjBetInput:focus{outline:none;border-color:var(--accent);}
+
   .fusion-list{display:flex;flex-direction:column;gap:8px;}
   .fusion-row{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;}
   .fusion-row .icon{width:38px;height:38px;flex-shrink:0;}
@@ -334,6 +353,7 @@
     <div class="tabs">
       <button class="tab-btn active" id="tabPlay" onclick="showTab('play')">Jouer</button>
       <button class="tab-btn" id="tabAtelier" onclick="showTab('atelier')">Atelier</button>
+      <button class="tab-btn" id="tabCasino" onclick="showTab('casino')">Casino</button>
       <button class="tab-btn" id="tabRank" onclick="showTab('rank')">Classement</button>
     </div>
 
@@ -394,6 +414,35 @@
     <div id="rankTab" style="display:none;">
       <p class="subtitle">Classement des joueurs par nombre de caisses ouvertes.</p>
       <div class="board" id="board"><div class="inv-empty">Chargement...</div></div>
+    </div>
+
+    <div id="casinoTab" style="display:none;">
+      <p class="subtitle">Mise tes points contre la banque. Aucun argent réel, aucune monnaie échangeable — juste pour le kiffe.</p>
+
+      <div class="bj-table">
+        <div class="bj-dealer-area">
+          <div class="bj-label">Banque <span id="bjDealerScore" class="bj-score"></span></div>
+          <div class="bj-hand" id="bjDealerHand"></div>
+        </div>
+        <div class="bj-result" id="bjResult"></div>
+        <div class="bj-player-area">
+          <div class="bj-label">Toi <span id="bjPlayerScore" class="bj-score"></span></div>
+          <div class="bj-hand" id="bjPlayerHand"></div>
+        </div>
+
+        <div class="bj-controls" id="bjBetControls">
+          <label class="bj-bet-label" for="bjBetInput">Mise (10 pts min.)</label>
+          <input type="number" id="bjBetInput" min="10" step="10" value="50">
+          <button class="btn btn-accent" onclick="bjDeal()">Miser et distribuer</button>
+        </div>
+        <div class="bj-controls" id="bjPlayControls" style="display:none;">
+          <button class="btn btn-accent" onclick="bjHit()">Tirer</button>
+          <button class="btn" onclick="bjStand()">Rester</button>
+        </div>
+        <div class="bj-controls" id="bjEndControls" style="display:none;">
+          <button class="btn btn-accent" onclick="bjReset()">Nouvelle main</button>
+        </div>
+      </div>
     </div>
 
     <div id="profileModal" class="profile-modal">
@@ -788,13 +837,16 @@ auth.onAuthStateChanged(async (user) => {
 function showTab(name){
   document.getElementById('tabPlay').classList.toggle('active', name==='play');
   document.getElementById('tabAtelier').classList.toggle('active', name==='atelier');
+  document.getElementById('tabCasino').classList.toggle('active', name==='casino');
   document.getElementById('tabRank').classList.toggle('active', name==='rank');
   document.getElementById('playTab').style.display = name==='play' ? 'block':'none';
   document.getElementById('atelierTab').style.display = name==='atelier' ? 'block':'none';
+  document.getElementById('casinoTab').style.display = name==='casino' ? 'block':'none';
   document.getElementById('rankTab').style.display = name==='rank' ? 'block':'none';
   if(name==='rank') startLeaderboardListener();
   else stopLeaderboardListener();
   if(name==='atelier'){ renderFusionList(); rerollSelection = []; renderRerollGrid(); }
+  if(name==='casino') bjReset();
 }
 
 // Classement en temps réel : on écoute la collection en direct (onSnapshot)
@@ -1319,6 +1371,158 @@ function startGameCooldown(){
       btn.textContent = "Mini-jeu (points)";
     }
   },1000);
+}
+
+// ---------- CASINO : BLACKJACK ----------
+const BJ_SUITS = ['♠','♥','♦','♣'];
+const BJ_RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+let bjDeck = [];
+let bjPlayerHand = [];
+let bjDealerHand = [];
+let bjBet = 0;
+let bjActive = false;
+
+function bjNewDeck(){
+  const deck = [];
+  for(const s of BJ_SUITS) for(const r of BJ_RANKS) deck.push({rank:r, suit:s});
+  for(let i=deck.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [deck[i],deck[j]] = [deck[j],deck[i]];
+  }
+  return deck;
+}
+function bjHandValue(hand){
+  let total = 0, aces = 0;
+  hand.forEach(c => {
+    if(c.rank === 'A'){ aces++; total += 11; }
+    else if(c.rank === 'K' || c.rank === 'Q' || c.rank === 'J') total += 10;
+    else total += parseInt(c.rank, 10);
+  });
+  while(total > 21 && aces > 0){ total -= 10; aces--; }
+  return total;
+}
+function bjCardHtml(card, hidden){
+  if(hidden) return `<div class="bj-card hidden"></div>`;
+  const isRed = card.suit === '♥' || card.suit === '♦';
+  return `<div class="bj-card ${isRed?'red':'black'}"><div>${card.rank}</div><div>${card.suit}</div></div>`;
+}
+function bjRenderHands(hideDealerSecond){
+  document.getElementById('bjPlayerHand').innerHTML = bjPlayerHand.map(c=>bjCardHtml(c,false)).join('');
+  document.getElementById('bjPlayerScore').textContent = bjPlayerHand.length ? '(' + bjHandValue(bjPlayerHand) + ')' : '';
+  document.getElementById('bjDealerHand').innerHTML = bjDealerHand.map((c,i)=> bjCardHtml(c, hideDealerSecond && i===1)).join('');
+  document.getElementById('bjDealerScore').textContent = bjDealerHand.length
+    ? (hideDealerSecond ? '(' + bjHandValue([bjDealerHand[0]]) + ' + ?)' : '(' + bjHandValue(bjDealerHand) + ')')
+    : '';
+}
+
+async function bjDeal(){
+  if(bjActive || !currentUser) return;
+  const input = document.getElementById('bjBetInput');
+  const bet = Math.floor(Number(input.value));
+  const resultBox = document.getElementById('bjResult');
+  resultBox.className = 'bj-result';
+  resultBox.textContent = '';
+
+  if(!bet || bet < 10){ resultBox.className = 'bj-result lose'; resultBox.textContent = "Mise minimum : 10 pts."; return; }
+  if(bet > points){ resultBox.className = 'bj-result lose'; resultBox.textContent = "Tu n'as pas assez de points."; return; }
+
+  bjBet = bet;
+  points -= bjBet;
+  renderPoints();
+  await saveCurrentUser();
+
+  bjDeck = bjNewDeck();
+  bjPlayerHand = [bjDeck.pop(), bjDeck.pop()];
+  bjDealerHand = [bjDeck.pop(), bjDeck.pop()];
+  bjActive = true;
+
+  document.getElementById('bjBetControls').style.display = 'none';
+  document.getElementById('bjEndControls').style.display = 'none';
+  document.getElementById('bjPlayControls').style.display = 'flex';
+  bjRenderHands(true);
+
+  if(bjHandValue(bjPlayerHand) === 21){
+    await bjFinish();
+  }
+}
+
+function bjHit(){
+  if(!bjActive) return;
+  bjPlayerHand.push(bjDeck.pop());
+  bjRenderHands(true);
+  if(bjHandValue(bjPlayerHand) > 21){
+    bjFinish();
+  }
+}
+
+function bjStand(){
+  if(!bjActive) return;
+  bjFinish();
+}
+
+async function bjFinish(){
+  bjActive = false;
+  document.getElementById('bjPlayControls').style.display = 'none';
+
+  const playerVal = bjHandValue(bjPlayerHand);
+  let dealerVal = bjHandValue(bjDealerHand);
+
+  if(playerVal <= 21){
+    // La banque tire tant qu'elle est en dessous de 17 (règle standard).
+    while(bjHandValue(bjDealerHand) < 17){
+      bjDealerHand.push(bjDeck.pop());
+    }
+    dealerVal = bjHandValue(bjDealerHand);
+  }
+
+  bjRenderHands(false);
+
+  const playerBJ = playerVal === 21 && bjPlayerHand.length === 2;
+  const dealerBJ = dealerVal === 21 && bjDealerHand.length === 2;
+
+  let payout, msg, cls;
+  if(playerVal > 21){
+    payout = 0; msg = "Perdu — tu as dépassé 21."; cls = 'lose';
+  } else if(playerBJ && dealerBJ){
+    payout = bjBet; msg = "Égalité (Blackjack des deux côtés) — mise remboursée."; cls = 'push';
+  } else if(playerBJ){
+    payout = Math.round(bjBet * 2.5); msg = `Blackjack ! +${payout - bjBet} pts`; cls = 'win';
+  } else if(dealerBJ){
+    payout = 0; msg = "La banque fait Blackjack — perdu."; cls = 'lose';
+  } else if(dealerVal > 21){
+    payout = bjBet * 2; msg = `La banque dépasse 21 — gagné ! +${bjBet} pts`; cls = 'win';
+  } else if(playerVal > dealerVal){
+    payout = bjBet * 2; msg = `Gagné ! +${bjBet} pts`; cls = 'win';
+  } else if(playerVal === dealerVal){
+    payout = bjBet; msg = "Égalité — mise remboursée."; cls = 'push';
+  } else {
+    payout = 0; msg = "Perdu."; cls = 'lose';
+  }
+
+  if(payout > 0){
+    points += payout;
+    renderPoints();
+    await saveCurrentUser();
+  }
+
+  const resultBox = document.getElementById('bjResult');
+  resultBox.className = 'bj-result ' + cls;
+  resultBox.textContent = msg;
+  document.getElementById('bjEndControls').style.display = 'flex';
+}
+
+function bjReset(){
+  bjActive = false;
+  bjPlayerHand = []; bjDealerHand = []; bjDeck = []; bjBet = 0;
+  bjRenderHands(false);
+  const resultBox = document.getElementById('bjResult');
+  if(resultBox){ resultBox.textContent = ''; resultBox.className = 'bj-result'; }
+  const betC = document.getElementById('bjBetControls');
+  const playC = document.getElementById('bjPlayControls');
+  const endC = document.getElementById('bjEndControls');
+  if(betC) betC.style.display = 'flex';
+  if(playC) playC.style.display = 'none';
+  if(endC) endC.style.display = 'none';
 }
 
 document.getElementById('authPass').addEventListener('keydown', e=>{ if(e.key==='Enter') handleAuth(); });
