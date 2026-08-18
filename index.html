@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poudre Cases</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://googleapis.com" rel="stylesheet">
 <style>
   :root{
@@ -26,7 +27,7 @@
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background: #0a0c0e; /* Simplifié pour l'affichage */
+    background: var(--bg);
     color: var(--text);
     font-family: 'Inter', sans-serif;
     display: flex;
@@ -104,10 +105,6 @@
     <input type="text" id="pseudo" placeholder="Votre pseudo">
   </div>
   <div class="form-group">
-    <label for="email">Adresse Email</label>
-    <input type="email" id="email" placeholder="exemple@mail.com">
-  </div>
-  <div class="form-group">
     <label for="password">Mot de passe</label>
     <input type="password" id="password" placeholder="******">
   </div>
@@ -117,12 +114,12 @@
 
 <!-- CONFIGURATION ET LOGIQUE FIREBASE SÉCURISÉE -->
 <script type="module">
-  // 1. Importation des modules Firebase nécessaires
+  // 1. Importation correcte des modules Firebase
   import { initializeApp } from "https://gstatic.com";
-  import { getAuth, createUserWithEmailAndPassword } from "https://gstatic.com";
+  import { getAuth, signInAnonymously } from "https://gstatic.com";
   import { getFirestore, doc, setDoc } from "https://gstatic.com";
 
-  // 2. METTEZ VOS PROPRES CONFIGURATIONS FIREBASE ICI
+  // 2. Vos configurations Firebase intégrées
   const firebaseConfig = {
     apiKey: "AIzaSyDIDZxdaZu04B1nFQNGxRK9sCul8c4iDdE",
     authDomain: "site-caseopeningpoudre.firebaseapp.com",
@@ -137,51 +134,44 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // 3. Gestion du clic sur le bouton d'inscription
+  // 3. Gestion du bouton d'inscription (Uniquement Pseudo / Mot de passe)
   document.getElementById('btn-register').addEventListener('click', async () => {
     const pseudo = document.getElementById('pseudo').value.trim();
-    const email = document.getElementById('email').value.trim();
     const password = document.getElementById('password').value;
     const messageDiv = document.getElementById('message');
 
-    // Réinitialisation des messages
     messageDiv.innerHTML = "";
 
-    if(!pseudo || !email || !password) {
+    if(!pseudo || !password) {
       messageDiv.innerHTML = `<p class="error-msg">Veuillez remplir tous les champs.</p>`;
       return;
     }
 
+    if(password.length < 6) {
+      messageDiv.innerHTML = `<p class="error-msg">Le mot de passe doit contenir au moins 6 caractères.</p>`;
+      return;
+    }
+
     try {
-      // Étape A : Création du compte sécurisé dans Firebase Authentication
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Étape A : Création de la connexion anonyme sécurisée
+      const userCredential = await signInAnonymously(auth);
       const user = userCredential.user;
 
-      // Étape B : Enregistrement du pseudo dans Firestore (Collection: poudrecases)
-      // On utilise user.uid comme ID du document pour correspondre à nos règles de sécurité !
+      // Étape B : Enregistrement du pseudo dans Firestore
       await setDoc(doc(db, "poudrecases", user.uid), {
         pseudo: pseudo,
-        email: email,
+        password: password,
         createdAt: new Date().toISOString()
       });
 
       messageDiv.innerHTML = `<p class="success-msg">Compte créé avec succès ! Bienvenue ${pseudo}.</p>`;
       
-      // Optionnel : Vider les champs
       document.getElementById('pseudo').value = "";
-      document.getElementById('email').value = "";
       document.getElementById('password').value = "";
 
     } catch (error) {
       console.error("Erreur d'inscription :", error);
-      let errorMessage = "Une erreur est survenue lors de l'inscription.";
-      
-      // Traduction des erreurs courantes de Firebase
-      if (error.code === 'auth/email-already-in-use') errorMessage = "Cette adresse email est déjà utilisée.";
-      if (error.code === 'auth/weak-password') errorMessage = "Le mot de passe doit contenir au moins 6 caractères.";
-      if (error.code === 'auth/invalid-email') errorMessage = "L'adresse email n'est pas valide.";
-      
-      messageDiv.innerHTML = `<p class="error-msg">${errorMessage}</p>`;
+      messageDiv.innerHTML = `<p class="error-msg">Une erreur est survenue lors de l'inscription.</p>`;
     }
   });
 </script>
