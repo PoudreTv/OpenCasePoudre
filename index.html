@@ -4,9 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poudre Cases</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://googleapis.com" rel="stylesheet">
+<link rel="preconnect" href="https://googleapis.com">
+<link href="https://googleapis.com/css2?family=Oswald:wght=500;600;700&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0a0c0e;
@@ -27,7 +26,7 @@
   *{box-sizing:border-box;}
   body{
     margin:0;
-    background: var(--bg);
+    background: var(--bg); /* Utilise ta couleur sombre */
     color: var(--text);
     font-family: 'Inter', sans-serif;
     display: flex;
@@ -112,29 +111,25 @@
   <div id="message"></div>
 </div>
 
-<!-- CONFIGURATION ET LOGIQUE FIREBASE SÉCURISÉE -->
 <script type="module">
-  // 1. Importation correcte des modules Firebase
+  // Importation simplifiée et directe de Firestore
   import { initializeApp } from "https://gstatic.com";
-  import { getAuth, signInAnonymously } from "https://gstatic.com";
   import { getFirestore, doc, setDoc } from "https://gstatic.com";
 
-  // 2. Vos configurations Firebase intégrées
+  // Vos vraies clés Firebase intégrées
   const firebaseConfig = {
     apiKey: "AIzaSyDIDZxdaZu04B1nFQNGxRK9sCul8c4iDdE",
-    authDomain: "site-caseopeningpoudre.firebaseapp.com",
+    authDomain: "://firebaseapp.com",
     projectId: "site-caseopeningpoudre",
     storageBucket: "site-caseopeningpoudre.firebasestorage.app",
     messagingSenderId: "321569665170",
     appId: "1:321569665170:web:0b38a96488579f1086364b"
   };
 
-  // Initialisation de Firebase
   const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // 3. Gestion du bouton d'inscription (Uniquement Pseudo / Mot de passe)
+  // Logique du bouton d'inscription
   document.getElementById('btn-register').addEventListener('click', async () => {
     const pseudo = document.getElementById('pseudo').value.trim();
     const password = document.getElementById('password').value;
@@ -147,18 +142,9 @@
       return;
     }
 
-    if(password.length < 6) {
-      messageDiv.innerHTML = `<p class="error-msg">Le mot de passe doit contenir au moins 6 caractères.</p>`;
-      return;
-    }
-
     try {
-      // Étape A : Création de la connexion anonyme sécurisée
-      const userCredential = await signInAnonymously(auth);
-      const user = userCredential.user;
-
-      // Étape B : Enregistrement du pseudo dans Firestore
-      await setDoc(doc(db, "poudrecases", user.uid), {
+      // On enregistre directement le compte dans ta collection poudrecases avec le pseudo comme nom de document
+      await setDoc(doc(db, "poudrecases", pseudo), {
         pseudo: pseudo,
         password: password,
         createdAt: new Date().toISOString()
@@ -170,8 +156,8 @@
       document.getElementById('password').value = "";
 
     } catch (error) {
-      console.error("Erreur d'inscription :", error);
-      messageDiv.innerHTML = `<p class="error-msg">Une erreur est survenue lors de l'inscription.</p>`;
+      console.error(error);
+      messageDiv.innerHTML = `<p class="error-msg">Erreur lors de l'inscription. Vérifie tes règles Firebase.</p>`;
     }
   });
 </script>
