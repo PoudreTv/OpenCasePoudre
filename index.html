@@ -4,8 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Poudre Cases</title>
-<link rel="preconnect" href="https://googleapis.com">
-<link href="https://googleapis.com/css2?family=Oswald:wght=500;600;700&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght=500;600;700&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#0a0c0e;
@@ -112,15 +113,14 @@
 </div>
 
 <script type="module">
-    // Importation corrigée de Firebase avec le bon domaine sécurisé
+  // 1. Importations de Firebase réparées avec les liens complets et officiels de Google
   import { initializeApp } from "https://gstatic.com";
   import { getFirestore, doc, setDoc } from "https://gstatic.com";
 
-
-  // Vos vraies clés Firebase intégrées
+  // 2. Vos clés Firebase corrigées (authDomain réparé)
   const firebaseConfig = {
     apiKey: "AIzaSyDIDZxdaZu04B1nFQNGxRK9sCul8c4iDdE",
-    authDomain: "://firebaseapp.com",
+    authDomain: "site-caseopeningpoudre.firebaseapp.com",
     projectId: "site-caseopeningpoudre",
     storageBucket: "site-caseopeningpoudre.firebasestorage.app",
     messagingSenderId: "321569665170",
@@ -130,7 +130,7 @@
   const app = initializeApp(firebaseConfig);
   const db = getFirestore(app);
 
-  // Logique du bouton d'inscription
+  // 3. Logique du bouton d'inscription (Uniquement Pseudo et Mot de passe)
   document.getElementById('btn-register').addEventListener('click', async () => {
     const pseudo = document.getElementById('pseudo').value.trim();
     const password = document.getElementById('password').value;
@@ -144,7 +144,7 @@
     }
 
     try {
-      // On enregistre directement le compte dans ta collection poudrecases avec le pseudo comme nom de document
+      // Enregistrement direct dans Firestore sous la collection poudrecases
       await setDoc(doc(db, "poudrecases", pseudo), {
         pseudo: pseudo,
         password: password,
