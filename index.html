@@ -669,6 +669,7 @@ function logout(){
   inventory = [];
   activeCrate = null;
   clearInterval(bonusInterval);
+  stopLeaderboardListener();
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('topRight').innerHTML = '';
@@ -791,32 +792,46 @@ function showTab(name){
   document.getElementById('playTab').style.display = name==='play' ? 'block':'none';
   document.getElementById('atelierTab').style.display = name==='atelier' ? 'block':'none';
   document.getElementById('rankTab').style.display = name==='rank' ? 'block':'none';
-  if(name==='rank') loadLeaderboard();
+  if(name==='rank') startLeaderboardListener();
+  else stopLeaderboardListener();
   if(name==='atelier'){ renderFusionList(); rerollSelection = []; renderRerollGrid(); }
 }
 
-async function loadLeaderboard(){
+// Classement en temps réel : on écoute la collection en direct (onSnapshot)
+// tant que l'onglet Classement est ouvert, et on coupe l'écoute dès qu'on en
+// sort (pour ne pas consommer de lectures Firestore inutilement en arrière-plan).
+let leaderboardUnsub = null;
+
+function startLeaderboardListener(){
+  if(leaderboardUnsub) return; // déjà actif
   const board = document.getElementById('board');
   board.innerHTML = '<div class="inv-empty">Chargement...</div>';
-  try{
-    const snap = await db.collection(PLAYERS_COLLECTION).limit(100).get();
-    const players = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
-    players.sort((a,b)=> (b.draws||0) - (a.draws||0));
-    if(players.length===0){
-      board.innerHTML = '<div class="inv-empty">Personne n\'a encore joué.</div>';
-      return;
-    }
-    board.innerHTML = players.map((p,idx)=>`
-      <div class="board-row" onclick="openProfile('${p.uid}')">
-        <div class="board-rank ${idx===0?'top':''}">#${idx+1}</div>
-        <div class="board-name">${p.username}</div>
-        <div class="board-stat"><b>${p.draws||0}</b> caisses ouvertes</div>
-        <div class="board-stat">${fmt(p.points||0)} pts</div>
-      </div>
-    `).join("");
-  }catch(e){
-    board.innerHTML = '<div class="inv-empty">Impossible de charger le classement.</div>';
+  leaderboardUnsub = db.collection(PLAYERS_COLLECTION).limit(100)
+    .onSnapshot(
+      snap => renderLeaderboard(snap.docs.map(d => ({ uid: d.id, ...d.data() }))),
+      err  => { board.innerHTML = '<div class="inv-empty">Impossible de charger le classement.</div>'; }
+    );
+}
+
+function stopLeaderboardListener(){
+  if(leaderboardUnsub){ leaderboardUnsub(); leaderboardUnsub = null; }
+}
+
+function renderLeaderboard(players){
+  const board = document.getElementById('board');
+  players.sort((a,b)=> (b.draws||0) - (a.draws||0));
+  if(players.length===0){
+    board.innerHTML = '<div class="inv-empty">Personne n\'a encore joué.</div>';
+    return;
   }
+  board.innerHTML = players.map((p,idx)=>`
+    <div class="board-row" onclick="openProfile('${p.uid}')">
+      <div class="board-rank ${idx===0?'top':''}">#${idx+1}</div>
+      <div class="board-name">${p.username}</div>
+      <div class="board-stat"><b>${p.draws||0}</b> caisses ouvertes</div>
+      <div class="board-stat">${fmt(p.points||0)} pts</div>
+    </div>
+  `).join("");
 }
 
 async function openProfile(uid){
