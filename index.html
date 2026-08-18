@@ -162,6 +162,30 @@
   #bjBetInput{width:110px;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:9px 10px;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;}
   #bjBetInput:focus{outline:none;border-color:var(--accent);}
 
+  .casino-game-switch{display:flex;gap:10px;margin-bottom:22px;}
+  .casino-game-switch button{flex:1;}
+
+  .rl-frame{position:relative;height:110px;background:linear-gradient(180deg,var(--panel2),var(--bg) 90%);border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-bottom:18px;}
+  .rl-frame::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--accent);z-index:5;transform:translateX(-1px);box-shadow:0 0 8px var(--accent);}
+  .rl-frame::after{content:"";position:absolute;left:50%;top:-1px;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:11px solid var(--accent);transform:translateX(-9px);z-index:5;}
+  .rl-fade-l,.rl-fade-r{position:absolute;top:0;bottom:0;width:60px;z-index:4;pointer-events:none;}
+  .rl-fade-l{left:0;background:linear-gradient(90deg,var(--panel2),transparent);}
+  .rl-fade-r{right:0;background:linear-gradient(270deg,var(--panel2),transparent);}
+  .rl-strip{position:absolute;top:0;left:0;height:100%;display:flex;align-items:center;will-change:transform;}
+  .rl-item{width:64px;height:82px;margin:0 4px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:22px;font-weight:600;color:#fff;}
+  .rl-item.red{background:#a83232;}
+  .rl-item.black{background:#1c1c1c;border:1px solid #333;}
+  .rl-item.green{background:#1e7d3c;}
+  .rl-controls{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;}
+  .rl-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
+  .rl-row:last-child{margin-bottom:0;}
+  .rl-row label{font-size:13px;color:var(--text2);min-width:70px;}
+  .rl-controls select, .rl-controls input[type=number]{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:9px 10px;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;}
+  .rl-controls select:focus, .rl-controls input:focus{outline:none;border-color:var(--accent);}
+  #rlNumberInput{width:80px;}
+  #rlBetAmount{width:110px;}
+  .rl-payout-hint{font-size:12px;color:var(--text2);}
+
   .fusion-list{display:flex;flex-direction:column;gap:8px;}
   .fusion-row{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;}
   .fusion-row .icon{width:38px;height:38px;flex-shrink:0;}
@@ -419,28 +443,72 @@
     <div id="casinoTab" style="display:none;">
       <p class="subtitle">Mise tes points contre la banque. Aucun argent réel, aucune monnaie échangeable — juste pour le kiffe.</p>
 
-      <div class="bj-table">
-        <div class="bj-dealer-area">
-          <div class="bj-label">Banque <span id="bjDealerScore" class="bj-score"></span></div>
-          <div class="bj-hand" id="bjDealerHand"></div>
-        </div>
-        <div class="bj-result" id="bjResult"></div>
-        <div class="bj-player-area">
-          <div class="bj-label">Toi <span id="bjPlayerScore" class="bj-score"></span></div>
-          <div class="bj-hand" id="bjPlayerHand"></div>
-        </div>
+      <div class="casino-game-switch">
+        <button class="btn btn-accent" id="casinoBtnBj" onclick="showCasinoGame('blackjack')">Blackjack</button>
+        <button class="btn" id="casinoBtnRl" onclick="showCasinoGame('roulette')">Roulette</button>
+      </div>
 
-        <div class="bj-controls" id="bjBetControls">
-          <label class="bj-bet-label" for="bjBetInput">Mise (10 pts min.)</label>
-          <input type="number" id="bjBetInput" min="10" step="10" value="50">
-          <button class="btn btn-accent" onclick="bjDeal()">Miser et distribuer</button>
+      <div id="blackjackGame">
+        <div class="bj-table">
+          <div class="bj-dealer-area">
+            <div class="bj-label">Banque <span id="bjDealerScore" class="bj-score"></span></div>
+            <div class="bj-hand" id="bjDealerHand"></div>
+          </div>
+          <div class="bj-result" id="bjResult"></div>
+          <div class="bj-player-area">
+            <div class="bj-label">Toi <span id="bjPlayerScore" class="bj-score"></span></div>
+            <div class="bj-hand" id="bjPlayerHand"></div>
+          </div>
+
+          <div class="bj-controls" id="bjBetControls">
+            <label class="bj-bet-label" for="bjBetInput">Mise (10 pts min.)</label>
+            <input type="number" id="bjBetInput" min="10" step="10" value="50">
+            <button class="btn btn-accent" onclick="bjDeal()">Miser et distribuer</button>
+          </div>
+          <div class="bj-controls" id="bjPlayControls" style="display:none;">
+            <button class="btn btn-accent" onclick="bjHit()">Tirer</button>
+            <button class="btn" onclick="bjStand()">Rester</button>
+          </div>
+          <div class="bj-controls" id="bjEndControls" style="display:none;">
+            <button class="btn btn-accent" onclick="bjReset()">Nouvelle main</button>
+          </div>
         </div>
-        <div class="bj-controls" id="bjPlayControls" style="display:none;">
-          <button class="btn btn-accent" onclick="bjHit()">Tirer</button>
-          <button class="btn" onclick="bjStand()">Rester</button>
+      </div>
+
+      <div id="rouletteGame" style="display:none;">
+        <div class="rl-frame">
+          <div class="rl-fade-l"></div>
+          <div class="rl-fade-r"></div>
+          <div class="rl-strip" id="rlStrip"></div>
         </div>
-        <div class="bj-controls" id="bjEndControls" style="display:none;">
-          <button class="btn btn-accent" onclick="bjReset()">Nouvelle main</button>
+        <div class="bj-result" id="rlResult"></div>
+
+        <div class="rl-controls">
+          <div class="rl-row">
+            <label for="rlBetType">Type de mise</label>
+            <select id="rlBetType" onchange="rlUpdateBetTypeUI()">
+              <option value="straight">Numéro plein (x36)</option>
+              <option value="red">Rouge (x2)</option>
+              <option value="black">Noir (x2)</option>
+              <option value="even">Pair (x2)</option>
+              <option value="odd">Impair (x2)</option>
+              <option value="low">Manque 1-18 (x2)</option>
+              <option value="high">Passe 19-36 (x2)</option>
+              <option value="dozen1">1ère douzaine 1-12 (x3)</option>
+              <option value="dozen2">2ème douzaine 13-24 (x3)</option>
+              <option value="dozen3">3ème douzaine 25-36 (x3)</option>
+              <option value="col1">Colonne 1 (x3)</option>
+              <option value="col2">Colonne 2 (x3)</option>
+              <option value="col3">Colonne 3 (x3)</option>
+            </select>
+            <input type="number" id="rlNumberInput" min="0" max="36" value="0" style="display:none;">
+          </div>
+          <div class="rl-row">
+            <label for="rlBetAmount">Mise (10 pts min.)</label>
+            <input type="number" id="rlBetAmount" min="10" step="10" value="50">
+            <button class="btn btn-accent" id="rlSpinBtn" onclick="rlSpin()">Miser et lancer</button>
+          </div>
+          <div class="rl-row"><span class="rl-payout-hint">Gain total affiché = mise comprise (ex: x2 = tu récupères 2x ta mise, dont ton profit net = 1x).</span></div>
         </div>
       </div>
     </div>
@@ -846,7 +914,7 @@ function showTab(name){
   if(name==='rank') startLeaderboardListener();
   else stopLeaderboardListener();
   if(name==='atelier'){ renderFusionList(); rerollSelection = []; renderRerollGrid(); }
-  if(name==='casino') bjReset();
+  if(name==='casino'){ showCasinoGame('blackjack'); bjReset(); rlUpdateBetTypeUI(); }
 }
 
 // Classement en temps réel : on écoute la collection en direct (onSnapshot)
@@ -1523,6 +1591,123 @@ function bjReset(){
   if(betC) betC.style.display = 'flex';
   if(playC) playC.style.display = 'none';
   if(endC) endC.style.display = 'none';
+}
+
+// ---------- CASINO : sélecteur de jeu ----------
+function showCasinoGame(game){
+  document.getElementById('blackjackGame').style.display = game==='blackjack' ? 'block':'none';
+  document.getElementById('rouletteGame').style.display = game==='roulette' ? 'block':'none';
+  document.getElementById('casinoBtnBj').className = game==='blackjack' ? 'btn btn-accent' : 'btn';
+  document.getElementById('casinoBtnRl').className = game==='roulette' ? 'btn btn-accent' : 'btn';
+}
+
+// ---------- CASINO : ROULETTE (européenne, un seul zéro) ----------
+const EU_WHEEL_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
+const RL_RED = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
+let rlSpinning = false;
+
+function rlColorFor(n){
+  if(n===0) return 'green';
+  return RL_RED.has(n) ? 'red' : 'black';
+}
+function rlColorLabel(c){
+  return c==='red' ? 'rouge' : c==='black' ? 'noir' : 'vert';
+}
+function rlUpdateBetTypeUI(){
+  const type = document.getElementById('rlBetType').value;
+  document.getElementById('rlNumberInput').style.display = type === 'straight' ? 'inline-block' : 'none';
+}
+function rlBuildStrip(landOn){
+  const strip = document.getElementById('rlStrip');
+  strip.style.transition = 'none';
+  strip.style.transform = 'translateX(0px)';
+  const REPEATS = 10;
+  const items = [];
+  for(let i=0;i<REPEATS;i++){ for(const n of EU_WHEEL_ORDER) items.push(n); }
+  const landIndex = items.length - 20;
+  items[landIndex] = landOn;
+  strip.innerHTML = items.map(n => `<div class="rl-item ${rlColorFor(n)}">${n}</div>`).join('');
+  return landIndex;
+}
+
+async function rlSpin(){
+  if(rlSpinning || !currentUser) return;
+  const betType = document.getElementById('rlBetType').value;
+  const betAmount = Math.floor(Number(document.getElementById('rlBetAmount').value));
+  const resultBox = document.getElementById('rlResult');
+  resultBox.className = 'bj-result';
+  resultBox.textContent = '';
+
+  if(!betAmount || betAmount < 10){ resultBox.className='bj-result lose'; resultBox.textContent = 'Mise minimum : 10 pts.'; return; }
+  if(betAmount > points){ resultBox.className='bj-result lose'; resultBox.textContent = "Tu n'as pas assez de points."; return; }
+
+  let straightNumber = null;
+  if(betType === 'straight'){
+    straightNumber = Math.floor(Number(document.getElementById('rlNumberInput').value));
+    if(isNaN(straightNumber) || straightNumber < 0 || straightNumber > 36){
+      resultBox.className='bj-result lose'; resultBox.textContent = 'Choisis un numéro entre 0 et 36.'; return;
+    }
+  }
+
+  rlSpinning = true;
+  document.getElementById('rlSpinBtn').disabled = true;
+
+  points -= betAmount;
+  renderPoints();
+  await saveCurrentUser();
+
+  const winningNumber = Math.floor(Math.random()*37);
+  const landIndex = rlBuildStrip(winningNumber);
+
+  const strip = document.getElementById('rlStrip');
+  const itemWidth = 64 + 8;
+  const frameWidth = document.querySelector('.rl-frame').offsetWidth;
+  const jitter = (Math.random()*40) - 20;
+  const targetX = -(landIndex*itemWidth) + (frameWidth/2) - (itemWidth/2) + jitter;
+
+  requestAnimationFrame(()=>{
+    strip.style.transition = 'transform 3.8s cubic-bezier(0.1,0.85,0.12,1)';
+    strip.style.transform = `translateX(${targetX}px)`;
+  });
+
+  setTimeout(async ()=>{
+    await rlResolve(betType, straightNumber, betAmount, winningNumber);
+    rlSpinning = false;
+    document.getElementById('rlSpinBtn').disabled = false;
+  }, 4000);
+}
+
+async function rlResolve(betType, straightNumber, bet, n){
+  const color = rlColorFor(n);
+  let win = false, mult = 0; // multiplicateur total, mise comprise
+
+  if(betType === 'straight'){ win = (n === straightNumber); mult = 36; }
+  else if(betType === 'red'){ win = (color === 'red'); mult = 2; }
+  else if(betType === 'black'){ win = (color === 'black'); mult = 2; }
+  else if(betType === 'even'){ win = (n !== 0 && n % 2 === 0); mult = 2; }
+  else if(betType === 'odd'){ win = (n !== 0 && n % 2 === 1); mult = 2; }
+  else if(betType === 'low'){ win = (n >= 1 && n <= 18); mult = 2; }
+  else if(betType === 'high'){ win = (n >= 19 && n <= 36); mult = 2; }
+  else if(betType === 'dozen1'){ win = (n >= 1 && n <= 12); mult = 3; }
+  else if(betType === 'dozen2'){ win = (n >= 13 && n <= 24); mult = 3; }
+  else if(betType === 'dozen3'){ win = (n >= 25 && n <= 36); mult = 3; }
+  else if(betType === 'col1'){ win = (n !== 0 && n % 3 === 1); mult = 3; }
+  else if(betType === 'col2'){ win = (n !== 0 && n % 3 === 2); mult = 3; }
+  else if(betType === 'col3'){ win = (n !== 0 && n % 3 === 0); mult = 3; }
+
+  const resultBox = document.getElementById('rlResult');
+  const label = rlColorLabel(color);
+  if(win){
+    const payout = bet * mult;
+    points += payout;
+    renderPoints();
+    await saveCurrentUser();
+    resultBox.className = 'bj-result win';
+    resultBox.textContent = `Le ${n} (${label}) sort — gagné ! +${payout - bet} pts`;
+  } else {
+    resultBox.className = 'bj-result lose';
+    resultBox.textContent = `Le ${n} (${label}) sort — perdu.`;
+  }
 }
 
 document.getElementById('authPass').addEventListener('keydown', e=>{ if(e.key==='Enter') handleAuth(); });
