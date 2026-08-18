@@ -434,6 +434,7 @@
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <script>
 const firebaseConfig = {
@@ -446,55 +447,17 @@ const firebaseConfig = {
   measurementId: "G-GX484R0RFC"
 };
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const db = firebase.firestore();
-const FS_COLLECTION = 'poudrecases';
-
-// Shim reproducing the window.storage API (get/set/delete/list) on top of
-// Firebase Firestore (shared=true) and localStorage (shared=false, per-browser).
-window.storage = {
-  async get(key, shared){
-    if(!shared){
-      const v = localStorage.getItem('pc_local:'+key);
-      return v!==null ? {key, value:v, shared} : null;
-    }
-    const snap = await db.collection(FS_COLLECTION).doc(key).get();
-    if(!snap.exists) return null;
-    return {key, value: snap.data().value, shared};
-  },
-  async set(key, value, shared){
-    if(!shared){
-      localStorage.setItem('pc_local:'+key, value);
-      return {key, value, shared};
-    }
-    await db.collection(FS_COLLECTION).doc(key).set({ key, value, updatedAt: Date.now() });
-    return {key, value, shared};
-  },
-  async delete(key, shared){
-    if(!shared){
-      localStorage.removeItem('pc_local:'+key);
-      return {key, deleted:true, shared};
-    }
-    await db.collection(FS_COLLECTION).doc(key).delete();
-    return {key, deleted:true, shared};
-  },
-  async list(prefix, shared){
-    if(!shared){
-      const keys = [];
-      const p = 'pc_local:' + (prefix||'');
-      for(let i=0;i<localStorage.length;i++){
-        const k = localStorage.key(i);
-        if(k.startsWith(p)) keys.push(k.slice('pc_local:'.length));
-      }
-      return {keys, prefix, shared};
-    }
-    let q = db.collection(FS_COLLECTION);
-    if(prefix){
-      q = q.where('key','>=',prefix).where('key','<', prefix + '\uf8ff');
-    }
-    const snap = await q.get();
-    return {keys: snap.docs.map(d=>d.id), prefix, shared};
-  }
-};
+const PLAYERS_COLLECTION = 'players';
+// Les comptes utilisent Firebase Authentication (pseudo + mot de passe).
+// Firebase gère le mot de passe de bout en bout (hash sécurisé côté Google) ;
+// il n'est jamais stocké ni lisible dans Firestore. Comme Firebase Auth
+// exige un identifiant au format e-mail, on génère en interne une fausse
+// adresse à partir du pseudo (jamais montrée à l'utilisateur).
+function emailFromUsername(usernameLower){
+  return usernameLower + '@poudrecases.local';
+}
 </script>
 <script>
 const RARITY = {
@@ -618,12 +581,6 @@ let spinning = false;
 let cooldown = 0;
 let viewingProfile = null;
 
-async function sha256(text){
-  const enc = new TextEncoder().encode(text);
-  const buf = await crypto.subtle.digest('SHA-256', enc);
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
 function toggleAuthMode(){
   authMode = authMode === 'login' ? 'register' : 'login';
   document.getElementById('authTitle').textContent = authMode==='login' ? 'Connexion' : 'Créer un compte';
@@ -639,38 +596,55 @@ async function handleAuth(){
   const errBox = document.getElementById('authError');
   errBox.textContent = '';
   if(!uRaw || uRaw.length < 3){ errBox.textContent = "Pseudo trop court (3 caractères min)."; return; }
-  if(!p || p.length < 4){ errBox.textContent = "Mot de passe trop court (4 caractères min)."; return; }
-  const username = uRaw.toLowerCase().replace(/[^a-z0-9_\-]/g,'');
-  if(!username){ errBox.textContent = "Pseudo invalide (lettres, chiffres, - et _ uniquement)."; return; }
+  if(!p || p.length < 6){ errBox.textContent = "Mot de passe trop court (6 caractères min)."; return; }
+  const usernameLower = uRaw.toLowerCase().replace(/[^a-z0-9_\-]/g,'');
+  if(!usernameLower || usernameLower !== uRaw.toLowerCase()){ errBox.textContent = "Pseudo invalide (lettres, chiffres, - et _ uniquement)."; return; }
 
   const submitBtn = document.getElementById('authSubmit');
   submitBtn.disabled = true;
-  const passHash = await sha256(username + ':' + p);
+  const fakeEmail = emailFromUsername(usernameLower);
 
   try{
-    let record = null;
-    try{
-      const res = await window.storage.get('playerdata:'+username, true);
-      record = res ? JSON.parse(res.value) : null;
-    }catch(e){ record = null; }
-
     if(authMode === 'register'){
-      if(record){ errBox.textContent = "Ce pseudo est déjà pris."; submitBtn.disabled=false; return; }
-      record = { username: uRaw, passHash, points: 1000, draws: 0, inventory: [], createdAt: Date.now(), lastBonusClaim: 0 };
-      await window.storage.set('playerdata:'+username, JSON.stringify(record), true);
+      // Firebase Authentication crée et sécurise le mot de passe (hashé côté
+      // Google, jamais stocké par nous). L'unicité du pseudo est garantie
+      // par l'unicité de l'e-mail interne : Firebase refuse la création si
+      // ce pseudo est déjà pris.
+      const cred = await auth.createUserWithEmailAndPassword(fakeEmail, p);
+      const uid = cred.user.uid;
+      const record = {
+        username: uRaw,
+        usernameLower,
+        points: 1000,
+        draws: 0,
+        inventory: [],
+        createdAt: Date.now(),
+        lastBonusClaim: 0
+      };
+      await db.collection(PLAYERS_COLLECTION).doc(uid).set(record);
+      currentUser = { uid, ...record };
     } else {
-      if(!record){ errBox.textContent = "Aucun compte avec ce pseudo. Crée-en un."; submitBtn.disabled=false; return; }
-      if(record.passHash !== passHash){ errBox.textContent = "Mot de passe incorrect."; submitBtn.disabled=false; return; }
+      const cred = await auth.signInWithEmailAndPassword(fakeEmail, p);
+      const uid = cred.user.uid;
+      const snap = await db.collection(PLAYERS_COLLECTION).doc(uid).get();
+      if(!snap.exists){
+        errBox.textContent = "Compte introuvable. Contacte un admin.";
+        submitBtn.disabled = false;
+        return;
+      }
+      currentUser = { uid, ...snap.data() };
     }
 
-    currentUser = record;
-    points = record.points;
-    inventory = record.inventory;
-    try{ await window.storage.set('lastuser', username, false); }catch(e){}
-
+    points = currentUser.points;
+    inventory = currentUser.inventory;
     enterApp();
   }catch(e){
-    errBox.textContent = "Erreur : " + (e && e.message ? e.message : "connexion au stockage impossible.");
+    const code = e && e.code;
+    if(code === 'auth/email-already-in-use') errBox.textContent = "Ce pseudo est déjà pris.";
+    else if(code === 'auth/weak-password') errBox.textContent = "Mot de passe trop faible (6 caractères min).";
+    else if(code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') errBox.textContent = "Pseudo ou mot de passe incorrect.";
+    else if(code === 'auth/too-many-requests') errBox.textContent = "Trop de tentatives, réessaie plus tard.";
+    else errBox.textContent = "Erreur : " + (e && e.message ? e.message : "connexion impossible.");
   }
   submitBtn.disabled = false;
 }
@@ -680,7 +654,12 @@ async function saveCurrentUser(){
   currentUser.points = points;
   currentUser.inventory = inventory;
   try{
-    await window.storage.set('playerdata:'+currentUser.username.toLowerCase(), JSON.stringify(currentUser), true);
+    await db.collection(PLAYERS_COLLECTION).doc(currentUser.uid).update({
+      points: currentUser.points,
+      inventory: currentUser.inventory,
+      draws: currentUser.draws || 0,
+      lastBonusClaim: currentUser.lastBonusClaim || 0
+    });
   }catch(e){}
 }
 
@@ -693,6 +672,7 @@ function logout(){
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('topRight').innerHTML = '';
+  auth.signOut();
 }
 
 function enterApp(){
@@ -783,18 +763,26 @@ function renderTopRight(){
   `;
 }
 
-async function tryAutoLogin(){
+// Firebase Authentication garde la session ouverte automatiquement dans le
+// navigateur. Au chargement, on vérifie s'il y a déjà une session valide et,
+// si oui, on entre directement dans le site sans redemander le mot de passe.
+auth.onAuthStateChanged(async (user) => {
+  if(!user){
+    document.getElementById('authScreen').style.display = 'flex';
+    return;
+  }
   try{
-    const last = await window.storage.get('lastuser', false);
-    if(!last || !last.value) return;
-    const username = last.value;
-    const res = await window.storage.get('playerdata:'+username, true);
-    if(!res) return;
-    // auto-login only restores the username field into the form for convenience,
-    // it does not bypass the password
-    document.getElementById('authUser').value = JSON.parse(res.value).username;
+    const snap = await db.collection(PLAYERS_COLLECTION).doc(user.uid).get();
+    if(snap.exists){
+      currentUser = { uid: user.uid, ...snap.data() };
+      points = currentUser.points;
+      inventory = currentUser.inventory;
+      enterApp();
+      return;
+    }
   }catch(e){}
-}
+  document.getElementById('authScreen').style.display = 'flex';
+});
 
 function showTab(name){
   document.getElementById('tabPlay').classList.toggle('active', name==='play');
@@ -811,22 +799,15 @@ async function loadLeaderboard(){
   const board = document.getElementById('board');
   board.innerHTML = '<div class="inv-empty">Chargement...</div>';
   try{
-    const listRes = await window.storage.list('playerdata:', true);
-    const keys = (listRes && listRes.keys) ? listRes.keys : [];
-    const players = [];
-    for(const k of keys.slice(0,100)){
-      try{
-        const r = await window.storage.get(k, true);
-        if(r) players.push(JSON.parse(r.value));
-      }catch(e){}
-    }
+    const snap = await db.collection(PLAYERS_COLLECTION).limit(100).get();
+    const players = snap.docs.map(d => ({ uid: d.id, ...d.data() }));
     players.sort((a,b)=> (b.draws||0) - (a.draws||0));
     if(players.length===0){
       board.innerHTML = '<div class="inv-empty">Personne n\'a encore joué.</div>';
       return;
     }
     board.innerHTML = players.map((p,idx)=>`
-      <div class="board-row" onclick="openProfile('${p.username.toLowerCase()}')">
+      <div class="board-row" onclick="openProfile('${p.uid}')">
         <div class="board-rank ${idx===0?'top':''}">#${idx+1}</div>
         <div class="board-name">${p.username}</div>
         <div class="board-stat"><b>${p.draws||0}</b> caisses ouvertes</div>
@@ -838,11 +819,11 @@ async function loadLeaderboard(){
   }
 }
 
-async function openProfile(username){
+async function openProfile(uid){
   try{
-    const res = await window.storage.get('playerdata:'+username, true);
-    if(!res) return;
-    const p = JSON.parse(res.value);
+    const snap = await db.collection(PLAYERS_COLLECTION).doc(uid).get();
+    if(!snap.exists) return;
+    const p = { uid, ...snap.data() };
     viewingProfile = p;
     document.getElementById('profileName').textContent = p.username;
     document.getElementById('profileStats').innerHTML = `
@@ -1326,7 +1307,7 @@ function startGameCooldown(){
 }
 
 document.getElementById('authPass').addEventListener('keydown', e=>{ if(e.key==='Enter') handleAuth(); });
-tryAutoLogin();
+// (la connexion automatique est gérée par auth.onAuthStateChanged ci-dessus)
 </script>
 </body>
 </html>
