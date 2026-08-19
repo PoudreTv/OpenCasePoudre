@@ -165,7 +165,14 @@
   .casino-game-switch{display:flex;gap:10px;margin-bottom:22px;}
   .casino-game-switch button{flex:1;}
 
-  .rl-frame{position:relative;height:110px;background:linear-gradient(180deg,var(--panel2),var(--bg) 90%);border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-bottom:18px;}
+  .rl-live-layout{display:grid;grid-template-columns:1.3fr 1fr;gap:24px;align-items:start;}
+  @media (max-width: 860px){ .rl-live-layout{grid-template-columns:1fr;} }
+
+  .rl-wheel-side{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;position:sticky;top:10px;}
+  .rl-phase-label{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;font-weight:600;text-align:center;margin-bottom:4px;}
+  .rl-countdown{font-family:'Oswald',sans-serif;font-size:36px;text-align:center;color:var(--accent);margin-bottom:14px;}
+
+  .rl-frame{position:relative;height:110px;background:linear-gradient(180deg,var(--panel2),var(--bg) 90%);border-radius:8px;overflow:hidden;border:1px solid var(--line);margin-bottom:14px;}
   .rl-frame::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--accent);z-index:5;transform:translateX(-1px);box-shadow:0 0 8px var(--accent);}
   .rl-frame::after{content:"";position:absolute;left:50%;top:-1px;width:0;height:0;border-left:9px solid transparent;border-right:9px solid transparent;border-top:11px solid var(--accent);transform:translateX(-9px);z-index:5;}
   .rl-fade-l,.rl-fade-r{position:absolute;top:0;bottom:0;width:60px;z-index:4;pointer-events:none;}
@@ -176,15 +183,36 @@
   .rl-item.red{background:#a83232;}
   .rl-item.black{background:#1c1c1c;border:1px solid #333;}
   .rl-item.green{background:#1e7d3c;}
-  .rl-controls{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;}
-  .rl-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px;}
-  .rl-row:last-child{margin-bottom:0;}
-  .rl-row label{font-size:13px;color:var(--text2);min-width:70px;}
-  .rl-controls select, .rl-controls input[type=number]{background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:9px 10px;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;}
-  .rl-controls select:focus, .rl-controls input:focus{outline:none;border-color:var(--accent);}
-  #rlNumberInput{width:80px;}
-  #rlBetAmount{width:110px;}
-  .rl-payout-hint{font-size:12px;color:var(--text2);}
+
+  .rl-history{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;}
+  .rl-hist-item{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:#fff;}
+  .rl-hist-item.red{background:#a83232;}
+  .rl-hist-item.black{background:#1c1c1c;border:1px solid #333;}
+  .rl-hist-item.green{background:#1e7d3c;}
+
+  .rl-presence{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+  .rl-presence-chip{font-size:11.5px;padding:4px 9px;border-radius:20px;border:1.5px solid var(--line);background:var(--panel2);color:var(--text2);}
+  .rl-presence-chip.empty{opacity:.6;border-style:dashed;}
+
+  .rl-numgrid-wrap{display:flex;gap:6px;margin-bottom:6px;}
+  .rl-zero{width:44px;flex-shrink:0;background:#1e7d3c;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:16px;font-weight:600;color:#fff;cursor:pointer;position:relative;transition:.1s;}
+  .rl-zero:hover{filter:brightness(1.25);}
+  .rl-numgrid{flex:1;display:grid;grid-template-rows:repeat(3,1fr);grid-auto-flow:column;grid-template-columns:repeat(12,1fr);gap:3px;}
+  .rl-cell.num{border-radius:5px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;color:#fff;cursor:pointer;position:relative;min-height:34px;transition:.1s;}
+  .rl-cell.num.red{background:#a83232;}
+  .rl-cell.num.black{background:#1c1c1c;border:1px solid #333;}
+  .rl-cell.num:hover{filter:brightness(1.25);}
+  .rl-outside-row{display:flex;gap:3px;margin-bottom:3px;}
+  .rl-cell.outside{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:9px 4px;text-align:center;font-size:11.5px;font-weight:600;color:var(--text);cursor:pointer;position:relative;transition:.1s;}
+  .rl-cell.outside:hover{border-color:var(--accent);}
+  .rl-cell.outside.red{color:#e05050;}
+  .rl-cell.outside.black{color:#cfd4d9;}
+  .rl-chip{position:absolute;top:2px;right:2px;width:10px;height:10px;border-radius:50%;border:1px solid rgba(255,255,255,.6);box-shadow:0 0 3px rgba(0,0,0,.6);}
+  .rl-bet-amount-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:16px 0 6px;}
+  .rl-bet-amount-row label{font-size:13px;color:var(--text2);}
+  #rlChipAmount{width:110px;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:9px 10px;border-radius:8px;font-size:14px;font-family:'Inter',sans-serif;}
+  #rlChipAmount:focus{outline:none;border-color:var(--accent);}
+  .rl-bet-hint{font-size:12px;color:var(--text2);}
 
   .fusion-list{display:flex;flex-direction:column;gap:8px;}
   .fusion-row{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 14px;}
@@ -476,39 +504,30 @@
       </div>
 
       <div id="rouletteGame" style="display:none;">
-        <div class="rl-frame">
-          <div class="rl-fade-l"></div>
-          <div class="rl-fade-r"></div>
-          <div class="rl-strip" id="rlStrip"></div>
-        </div>
-        <div class="bj-result" id="rlResult"></div>
+        <div class="rl-live-layout">
+          <div class="rl-table-side">
+            <div class="rl-history" id="rlHistory"></div>
+            <div class="rl-presence" id="rlPresence"></div>
+            <div id="rlGrid" class="rl-numgrid-wrap"></div>
+            <div id="rlOutside"></div>
+            <div class="rl-bet-amount-row">
+              <label for="rlChipAmount">Mise par clic (10 pts min.)</label>
+              <input type="number" id="rlChipAmount" min="10" step="10" value="50">
+              <span class="rl-bet-hint">Clique une case de la table pour y placer cette mise.</span>
+            </div>
+            <div class="bj-result" id="rlBetMsg"></div>
+          </div>
 
-        <div class="rl-controls">
-          <div class="rl-row">
-            <label for="rlBetType">Type de mise</label>
-            <select id="rlBetType" onchange="rlUpdateBetTypeUI()">
-              <option value="straight">Numéro plein (x36)</option>
-              <option value="red">Rouge (x2)</option>
-              <option value="black">Noir (x2)</option>
-              <option value="even">Pair (x2)</option>
-              <option value="odd">Impair (x2)</option>
-              <option value="low">Manque 1-18 (x2)</option>
-              <option value="high">Passe 19-36 (x2)</option>
-              <option value="dozen1">1ère douzaine 1-12 (x3)</option>
-              <option value="dozen2">2ème douzaine 13-24 (x3)</option>
-              <option value="dozen3">3ème douzaine 25-36 (x3)</option>
-              <option value="col1">Colonne 1 (x3)</option>
-              <option value="col2">Colonne 2 (x3)</option>
-              <option value="col3">Colonne 3 (x3)</option>
-            </select>
-            <input type="number" id="rlNumberInput" min="0" max="36" value="0" style="display:none;">
+          <div class="rl-wheel-side">
+            <div class="rl-phase-label" id="rlPhaseLabel">Mises ouvertes</div>
+            <div class="rl-countdown" id="rlCountdown">--</div>
+            <div class="rl-frame">
+              <div class="rl-fade-l"></div>
+              <div class="rl-fade-r"></div>
+              <div class="rl-strip" id="rlStrip"></div>
+            </div>
+            <div class="bj-result" id="rlResult"></div>
           </div>
-          <div class="rl-row">
-            <label for="rlBetAmount">Mise (10 pts min.)</label>
-            <input type="number" id="rlBetAmount" min="10" step="10" value="50">
-            <button class="btn btn-accent" id="rlSpinBtn" onclick="rlSpin()">Miser et lancer</button>
-          </div>
-          <div class="rl-row"><span class="rl-payout-hint">Gain total affiché = mise comprise (ex: x2 = tu récupères 2x ta mise, dont ton profit net = 1x).</span></div>
         </div>
       </div>
     </div>
@@ -736,7 +755,8 @@ async function handleAuth(){
         draws: 0,
         inventory: [],
         createdAt: Date.now(),
-        lastBonusClaim: 0
+        lastBonusClaim: 0,
+        lastRouletteRoundPaid: 0
       };
       await db.collection(PLAYERS_COLLECTION).doc(uid).set(record);
       currentUser = { uid, ...record };
@@ -750,6 +770,8 @@ async function handleAuth(){
         return;
       }
       currentUser = { uid, ...snap.data() };
+      // Compatibilité comptes créés avant l'ajout de la roulette en direct.
+      if(currentUser.lastRouletteRoundPaid === undefined) currentUser.lastRouletteRoundPaid = 0;
     }
 
     points = currentUser.points;
@@ -781,12 +803,13 @@ async function saveCurrentUser(){
 }
 
 function logout(){
+  stopLeaderboardListener();
+  rlStopLive();
   currentUser = null;
   points = 0;
   inventory = [];
   activeCrate = null;
   clearInterval(bonusInterval);
-  stopLeaderboardListener();
   document.getElementById('appScreen').style.display = 'none';
   document.getElementById('authScreen').style.display = 'flex';
   document.getElementById('topRight').innerHTML = '';
@@ -893,6 +916,7 @@ auth.onAuthStateChanged(async (user) => {
     const snap = await db.collection(PLAYERS_COLLECTION).doc(user.uid).get();
     if(snap.exists){
       currentUser = { uid: user.uid, ...snap.data() };
+      if(currentUser.lastRouletteRoundPaid === undefined) currentUser.lastRouletteRoundPaid = 0;
       points = currentUser.points;
       inventory = currentUser.inventory;
       enterApp();
@@ -914,7 +938,8 @@ function showTab(name){
   if(name==='rank') startLeaderboardListener();
   else stopLeaderboardListener();
   if(name==='atelier'){ renderFusionList(); rerollSelection = []; renderRerollGrid(); }
-  if(name==='casino'){ showCasinoGame('blackjack'); bjReset(); rlUpdateBetTypeUI(); }
+  if(name==='casino'){ showCasinoGame('blackjack'); bjReset(); }
+  else { rlStopLive(); }
 }
 
 // Classement en temps réel : on écoute la collection en direct (onSnapshot)
@@ -1599,12 +1624,18 @@ function showCasinoGame(game){
   document.getElementById('rouletteGame').style.display = game==='roulette' ? 'block':'none';
   document.getElementById('casinoBtnBj').className = game==='blackjack' ? 'btn btn-accent' : 'btn';
   document.getElementById('casinoBtnRl').className = game==='roulette' ? 'btn btn-accent' : 'btn';
+  if(game === 'roulette') rlStartLive();
+  else rlStopLive();
 }
 
-// ---------- CASINO : ROULETTE (européenne, un seul zéro) ----------
+// ---------- CASINO : ROULETTE EN DIRECT (table partagée, événement 30s) ----------
 const EU_WHEEL_ORDER = [0,32,15,19,4,21,2,25,17,34,6,27,13,36,11,30,8,23,10,5,24,16,33,1,20,14,31,9,22,18,29,7,28,12,35,3,26];
 const RL_RED = new Set([1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36]);
-let rlSpinning = false;
+const RL_BETTING_MS = 30000;
+const RL_RESULT_HOLD_MS = 6000;
+const RL_DOC_REF = () => db.collection('casino').doc('roulette');
+const RL_BETS_REF = () => RL_DOC_REF().collection('bets');
+const RL_PRESENCE_REF = () => RL_DOC_REF().collection('presence');
 
 function rlColorFor(n){
   if(n===0) return 'green';
@@ -1613,12 +1644,14 @@ function rlColorFor(n){
 function rlColorLabel(c){
   return c==='red' ? 'rouge' : c==='black' ? 'noir' : 'vert';
 }
-function rlUpdateBetTypeUI(){
-  const type = document.getElementById('rlBetType').value;
-  document.getElementById('rlNumberInput').style.display = type === 'straight' ? 'inline-block' : 'none';
+function rlColorForUid(uid){
+  let h = 0;
+  for(let i=0;i<uid.length;i++){ h = (h*31 + uid.charCodeAt(i)) % 360; }
+  return `hsl(${h}, 70%, 55%)`;
 }
 function rlBuildStrip(landOn){
   const strip = document.getElementById('rlStrip');
+  if(!strip) return 0;
   strip.style.transition = 'none';
   strip.style.transform = 'translateX(0px)';
   const REPEATS = 10;
@@ -1629,84 +1662,354 @@ function rlBuildStrip(landOn){
   strip.innerHTML = items.map(n => `<div class="rl-item ${rlColorFor(n)}">${n}</div>`).join('');
   return landIndex;
 }
-
-async function rlSpin(){
-  if(rlSpinning || !currentUser) return;
-  const betType = document.getElementById('rlBetType').value;
-  const betAmount = Math.floor(Number(document.getElementById('rlBetAmount').value));
+function rlAnimateStripTo(winningNumber){
+  const landIndex = rlBuildStrip(winningNumber);
+  const strip = document.getElementById('rlStrip');
+  const frameEl = document.querySelector('.rl-frame');
+  if(!strip || !frameEl) return;
+  const itemWidth = 64 + 8;
+  const frameWidth = frameEl.offsetWidth;
+  const jitter = (Math.random()*40) - 20;
+  const targetX = -(landIndex*itemWidth) + (frameWidth/2) - (itemWidth/2) + jitter;
+  requestAnimationFrame(()=>{
+    strip.style.transition = 'transform 3.5s cubic-bezier(0.1,0.85,0.12,1)';
+    strip.style.transform = `translateX(${targetX}px)`;
+  });
   const resultBox = document.getElementById('rlResult');
-  resultBox.className = 'bj-result';
-  resultBox.textContent = '';
+  if(resultBox){
+    const color = rlColorFor(winningNumber);
+    resultBox.className = 'bj-result';
+    resultBox.textContent = `Résultat : ${winningNumber} (${rlColorLabel(color)})`;
+  }
+}
 
-  if(!betAmount || betAmount < 10){ resultBox.className='bj-result lose'; resultBox.textContent = 'Mise minimum : 10 pts.'; return; }
-  if(betAmount > points){ resultBox.className='bj-result lose'; resultBox.textContent = "Tu n'as pas assez de points."; return; }
+function rlComputePayout(betType, betNumber, amount, n){
+  const color = rlColorFor(n);
+  let win = false, mult = 0; // multiplicateur total, mise comprise
+  if(betType === 'straight'){ win = (n === betNumber); mult = 36; }
+  else if(betType === 'red'){ win = (color==='red'); mult = 2; }
+  else if(betType === 'black'){ win = (color==='black'); mult = 2; }
+  else if(betType === 'even'){ win = (n!==0 && n%2===0); mult = 2; }
+  else if(betType === 'odd'){ win = (n!==0 && n%2===1); mult = 2; }
+  else if(betType === 'low'){ win = (n>=1 && n<=18); mult = 2; }
+  else if(betType === 'high'){ win = (n>=19 && n<=36); mult = 2; }
+  else if(betType === 'dozen1'){ win = (n>=1 && n<=12); mult = 3; }
+  else if(betType === 'dozen2'){ win = (n>=13 && n<=24); mult = 3; }
+  else if(betType === 'dozen3'){ win = (n>=25 && n<=36); mult = 3; }
+  else if(betType === 'col1'){ win = (n!==0 && n%3===1); mult = 3; }
+  else if(betType === 'col2'){ win = (n!==0 && n%3===2); mult = 3; }
+  else if(betType === 'col3'){ win = (n!==0 && n%3===0); mult = 3; }
+  return win ? amount * mult : 0;
+}
 
-  let straightNumber = null;
-  if(betType === 'straight'){
-    straightNumber = Math.floor(Number(document.getElementById('rlNumberInput').value));
-    if(isNaN(straightNumber) || straightNumber < 0 || straightNumber > 36){
-      resultBox.className='bj-result lose'; resultBox.textContent = 'Choisis un numéro entre 0 et 36.'; return;
+// --- Rendu de la table de mise ---
+function rlBuildGrid(){
+  const wrap = document.getElementById('rlGrid');
+  if(!wrap) return;
+  let numHtml = '';
+  for(let col=0; col<12; col++){
+    for(let row=0; row<3; row++){
+      const n = col*3 + (3-row);
+      numHtml += `<div class="rl-cell num ${rlColorFor(n)}" data-bettype="straight" data-num="${n}" onclick="rlCellClick(this)">${n}</div>`;
     }
   }
+  wrap.innerHTML = `
+    <div class="rl-zero" data-bettype="straight" data-num="0" onclick="rlCellClick(this)">0</div>
+    <div class="rl-numgrid">${numHtml}</div>
+  `;
+}
+function rlBuildOutside(){
+  const wrap = document.getElementById('rlOutside');
+  if(!wrap) return;
+  wrap.innerHTML = `
+    <div class="rl-outside-row">
+      <div class="rl-cell outside" data-bettype="dozen1" onclick="rlCellClick(this)">1-12</div>
+      <div class="rl-cell outside" data-bettype="dozen2" onclick="rlCellClick(this)">13-24</div>
+      <div class="rl-cell outside" data-bettype="dozen3" onclick="rlCellClick(this)">25-36</div>
+    </div>
+    <div class="rl-outside-row">
+      <div class="rl-cell outside" data-bettype="low" onclick="rlCellClick(this)">1-18</div>
+      <div class="rl-cell outside" data-bettype="even" onclick="rlCellClick(this)">PAIR</div>
+      <div class="rl-cell outside red" data-bettype="red" onclick="rlCellClick(this)">ROUGE</div>
+      <div class="rl-cell outside black" data-bettype="black" onclick="rlCellClick(this)">NOIR</div>
+      <div class="rl-cell outside" data-bettype="odd" onclick="rlCellClick(this)">IMPAIR</div>
+      <div class="rl-cell outside" data-bettype="high" onclick="rlCellClick(this)">19-36</div>
+    </div>
+    <div class="rl-outside-row">
+      <div class="rl-cell outside" data-bettype="col1" onclick="rlCellClick(this)">Colonne 1 (x3)</div>
+      <div class="rl-cell outside" data-bettype="col2" onclick="rlCellClick(this)">Colonne 2 (x3)</div>
+      <div class="rl-cell outside" data-bettype="col3" onclick="rlCellClick(this)">Colonne 3 (x3)</div>
+    </div>
+  `;
+}
+function rlRenderBetsOverlay(bets){
+  document.querySelectorAll('.rl-chip').forEach(el=>el.remove());
+  bets.forEach(b => {
+    const sel = b.betType === 'straight'
+      ? `[data-bettype="straight"][data-num="${b.betNumber}"]`
+      : `[data-bettype="${b.betType}"]`;
+    const cell = document.querySelector(sel);
+    if(!cell) return;
+    const chip = document.createElement('div');
+    chip.className = 'rl-chip';
+    chip.style.background = rlColorForUid(b.uid);
+    chip.title = `${b.username} — ${b.amount} pts`;
+    cell.appendChild(chip);
+  });
+}
 
-  rlSpinning = true;
-  document.getElementById('rlSpinBtn').disabled = true;
+// --- État partagé & cycle de vie du tour ---
+let rlCurrentRound = null;
+let rlRoundUnsub = null;
+let rlBetsUnsub = null;
+let rlBetsRoundIdSubscribed = null;
+let rlPresenceUnsub = null;
+let rlPresenceInterval = null;
+let rlTickInterval = null;
+let rlTransitioning = false;
+let rlLastAnimatedRound = null;
 
-  points -= betAmount;
+async function rlEnsureRoundDoc(){
+  const ref = RL_DOC_REF();
+  try{
+    const snap = await ref.get();
+    if(!snap.exists){
+      await ref.set({
+        roundId: 1,
+        phase: 'betting',
+        bettingEndsAt: Date.now() + RL_BETTING_MS,
+        closingAt: null,
+        resultAt: null,
+        winningNumber: null,
+        history: []
+      });
+    }
+  }catch(e){ /* quelqu'un l'a peut-être déjà créée entre-temps, pas grave */ }
+}
+
+function rlStartLive(){
+  rlBuildGrid();
+  rlBuildOutside();
+  rlEnsureRoundDoc().then(()=>{
+    if(rlRoundUnsub) return;
+    rlRoundUnsub = RL_DOC_REF().onSnapshot(snap => {
+      if(!snap.exists) return;
+      rlCurrentRound = snap.data();
+      rlRenderRoundState();
+      rlMaybeCheckPayout();
+    });
+  });
+  rlPresenceStart();
+  if(!rlTickInterval) rlTickInterval = setInterval(rlTick, 1000);
+}
+
+function rlStopLive(){
+  if(rlRoundUnsub){ rlRoundUnsub(); rlRoundUnsub = null; }
+  if(rlBetsUnsub){ rlBetsUnsub(); rlBetsUnsub = null; }
+  rlBetsRoundIdSubscribed = null;
+  if(rlTickInterval){ clearInterval(rlTickInterval); rlTickInterval = null; }
+  rlPresenceStop();
+}
+
+function rlRenderRoundState(){
+  if(!rlCurrentRound) return;
+  const { roundId, phase, history, winningNumber } = rlCurrentRound;
+
+  if(rlBetsRoundIdSubscribed !== roundId){
+    if(rlBetsUnsub) rlBetsUnsub();
+    rlBetsRoundIdSubscribed = roundId;
+    rlBetsUnsub = RL_BETS_REF().where('roundId','==', roundId).onSnapshot(snap => {
+      rlRenderBetsOverlay(snap.docs.map(d=>d.data()));
+    });
+  }
+
+  const label = document.getElementById('rlPhaseLabel');
+  if(label){
+    label.textContent = phase === 'betting' ? 'Mises ouvertes' : phase === 'closing' ? 'Tirage en cours...' : 'Résultat';
+  }
+
+  const histBox = document.getElementById('rlHistory');
+  if(histBox){
+    histBox.innerHTML = (history||[]).slice(-10).reverse().map(n =>
+      `<div class="rl-hist-item ${rlColorFor(n)}">${n}</div>`
+    ).join('') || '<span class="rl-bet-hint">Aucun tirage pour l\'instant.</span>';
+  }
+
+  if(phase === 'result' && winningNumber !== null && rlLastAnimatedRound !== roundId){
+    rlLastAnimatedRound = roundId;
+    rlAnimateStripTo(winningNumber);
+  }
+}
+
+async function rlTick(){
+  if(!rlCurrentRound) return;
+  const now = Date.now();
+  const { phase, bettingEndsAt, resultAt } = rlCurrentRound;
+  const cd = document.getElementById('rlCountdown');
+
+  if(phase === 'betting'){
+    const remaining = Math.max(0, Math.ceil((bettingEndsAt - now)/1000));
+    if(cd) cd.textContent = remaining;
+    if(now >= bettingEndsAt && !rlTransitioning){
+      rlTransitioning = true;
+      await rlTryCloseBetting();
+      rlTransitioning = false;
+    }
+  } else if(phase === 'closing'){
+    if(cd) cd.textContent = '···';
+    if(!rlTransitioning){
+      rlTransitioning = true;
+      await rlTryPublishResult();
+      rlTransitioning = false;
+    }
+  } else if(phase === 'result'){
+    if(cd) cd.textContent = '';
+    if(resultAt && now >= resultAt + RL_RESULT_HOLD_MS && !rlTransitioning){
+      rlTransitioning = true;
+      await rlTryStartNextRound();
+      rlTransitioning = false;
+    }
+  }
+}
+
+async function rlTryCloseBetting(){
+  const ref = RL_DOC_REF();
+  try{
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const d = snap.data();
+      if(!d || d.phase !== 'betting') return;
+      if(Date.now() < d.bettingEndsAt) return;
+      tx.update(ref, { phase: 'closing', closingAt: firebase.firestore.FieldValue.serverTimestamp() });
+    });
+  }catch(e){}
+  await rlTryPublishResult();
+}
+
+async function rlTryPublishResult(){
+  const ref = RL_DOC_REF();
+  try{
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const d = snap.data();
+      if(!d || d.phase !== 'closing' || !d.closingAt) return;
+      const closingMillis = d.closingAt.toMillis();
+      const winningNumber = (closingMillis + d.roundId) % 37;
+      const history = (d.history || []).concat([winningNumber]).slice(-10);
+      tx.update(ref, { phase: 'result', winningNumber, resultAt: Date.now(), history });
+    });
+  }catch(e){ /* déjà publié par un autre client, ou closingAt pas encore résolu */ }
+}
+
+async function rlTryStartNextRound(){
+  const ref = RL_DOC_REF();
+  try{
+    await db.runTransaction(async (tx) => {
+      const snap = await tx.get(ref);
+      const d = snap.data();
+      if(!d || d.phase !== 'result') return;
+      if(!d.resultAt || Date.now() < d.resultAt + RL_RESULT_HOLD_MS) return;
+      tx.update(ref, {
+        roundId: d.roundId + 1,
+        phase: 'betting',
+        bettingEndsAt: Date.now() + RL_BETTING_MS,
+        closingAt: null,
+        winningNumber: null
+      });
+    });
+  }catch(e){}
+}
+
+// --- Mises ---
+async function rlCellClick(el){
+  const msg = document.getElementById('rlBetMsg');
+  if(msg){ msg.textContent=''; msg.className='bj-result'; }
+  if(!currentUser || !rlCurrentRound) return;
+  if(rlCurrentRound.phase !== 'betting' || Date.now() >= rlCurrentRound.bettingEndsAt){
+    if(msg){ msg.className='bj-result lose'; msg.textContent = "Les mises sont fermées, attends le prochain tour."; }
+    return;
+  }
+  const betType = el.dataset.bettype;
+  const betNumber = betType === 'straight' ? parseInt(el.dataset.num, 10) : null;
+  const amount = Math.floor(Number(document.getElementById('rlChipAmount').value));
+
+  if(!amount || amount < 10){ if(msg){ msg.className='bj-result lose'; msg.textContent = 'Mise minimum : 10 pts.'; } return; }
+  if(amount > points){ if(msg){ msg.className='bj-result lose'; msg.textContent = "Tu n'as pas assez de points."; } return; }
+
+  points -= amount;
   renderPoints();
   await saveCurrentUser();
 
-  const winningNumber = Math.floor(Math.random()*37);
-  const landIndex = rlBuildStrip(winningNumber);
-
-  const strip = document.getElementById('rlStrip');
-  const itemWidth = 64 + 8;
-  const frameWidth = document.querySelector('.rl-frame').offsetWidth;
-  const jitter = (Math.random()*40) - 20;
-  const targetX = -(landIndex*itemWidth) + (frameWidth/2) - (itemWidth/2) + jitter;
-
-  requestAnimationFrame(()=>{
-    strip.style.transition = 'transform 3.8s cubic-bezier(0.1,0.85,0.12,1)';
-    strip.style.transform = `translateX(${targetX}px)`;
-  });
-
-  setTimeout(async ()=>{
-    await rlResolve(betType, straightNumber, betAmount, winningNumber);
-    rlSpinning = false;
-    document.getElementById('rlSpinBtn').disabled = false;
-  }, 4000);
-}
-
-async function rlResolve(betType, straightNumber, bet, n){
-  const color = rlColorFor(n);
-  let win = false, mult = 0; // multiplicateur total, mise comprise
-
-  if(betType === 'straight'){ win = (n === straightNumber); mult = 36; }
-  else if(betType === 'red'){ win = (color === 'red'); mult = 2; }
-  else if(betType === 'black'){ win = (color === 'black'); mult = 2; }
-  else if(betType === 'even'){ win = (n !== 0 && n % 2 === 0); mult = 2; }
-  else if(betType === 'odd'){ win = (n !== 0 && n % 2 === 1); mult = 2; }
-  else if(betType === 'low'){ win = (n >= 1 && n <= 18); mult = 2; }
-  else if(betType === 'high'){ win = (n >= 19 && n <= 36); mult = 2; }
-  else if(betType === 'dozen1'){ win = (n >= 1 && n <= 12); mult = 3; }
-  else if(betType === 'dozen2'){ win = (n >= 13 && n <= 24); mult = 3; }
-  else if(betType === 'dozen3'){ win = (n >= 25 && n <= 36); mult = 3; }
-  else if(betType === 'col1'){ win = (n !== 0 && n % 3 === 1); mult = 3; }
-  else if(betType === 'col2'){ win = (n !== 0 && n % 3 === 2); mult = 3; }
-  else if(betType === 'col3'){ win = (n !== 0 && n % 3 === 0); mult = 3; }
-
-  const resultBox = document.getElementById('rlResult');
-  const label = rlColorLabel(color);
-  if(win){
-    const payout = bet * mult;
-    points += payout;
+  const betId = `${rlCurrentRound.roundId}_${currentUser.uid}_${Date.now()}_${Math.floor(Math.random()*1000)}`;
+  try{
+    await RL_BETS_REF().doc(betId).set({
+      uid: currentUser.uid,
+      username: currentUser.username,
+      roundId: rlCurrentRound.roundId,
+      betType, betNumber, amount,
+      placedAt: Date.now()
+    });
+  }catch(e){
+    points += amount; // on rembourse localement si l'écriture de la mise échoue
     renderPoints();
     await saveCurrentUser();
-    resultBox.className = 'bj-result win';
-    resultBox.textContent = `Le ${n} (${label}) sort — gagné ! +${payout - bet} pts`;
-  } else {
-    resultBox.className = 'bj-result lose';
-    resultBox.textContent = `Le ${n} (${label}) sort — perdu.`;
+    if(msg){ msg.className='bj-result lose'; msg.textContent = "Impossible de placer la mise, réessaie."; }
+  }
+}
+
+// --- Paiement (chacun se paie soi-même à partir du résultat public) ---
+async function rlMaybeCheckPayout(){
+  if(!rlCurrentRound || !currentUser) return;
+  const { phase, roundId, winningNumber } = rlCurrentRound;
+  if(phase !== 'result' || winningNumber === null) return;
+  if((currentUser.lastRouletteRoundPaid || 0) >= roundId) return;
+
+  try{
+    const betsSnap = await RL_BETS_REF().where('roundId','==', roundId).where('uid','==', currentUser.uid).get();
+    let totalPayout = 0;
+    betsSnap.forEach(doc => {
+      const b = doc.data();
+      totalPayout += rlComputePayout(b.betType, b.betNumber, b.amount, winningNumber);
+    });
+    currentUser.lastRouletteRoundPaid = roundId;
+    if(totalPayout > 0){
+      points += totalPayout;
+      renderPoints();
+    }
+    await saveCurrentUser();
+  }catch(e){}
+}
+
+// --- Présence (qui regarde la roulette en ce moment) ---
+async function rlPresenceHeartbeat(){
+  if(!currentUser) return;
+  try{
+    await RL_PRESENCE_REF().doc(currentUser.uid).set({
+      uid: currentUser.uid, username: currentUser.username, lastSeen: Date.now()
+    });
+  }catch(e){}
+}
+function rlPresenceStart(){
+  rlPresenceHeartbeat();
+  if(!rlPresenceInterval) rlPresenceInterval = setInterval(rlPresenceHeartbeat, 15000);
+  if(!rlPresenceUnsub){
+    rlPresenceUnsub = RL_PRESENCE_REF().onSnapshot(snap => {
+      const now = Date.now();
+      const players = snap.docs.map(d=>d.data()).filter(p => p.lastSeen && (now - p.lastSeen) < 40000);
+      const box = document.getElementById('rlPresence');
+      if(box){
+        box.innerHTML = players.length
+          ? players.map(p=>`<span class="rl-presence-chip" style="border-color:${rlColorForUid(p.uid)}">${p.username}</span>`).join('')
+          : '<span class="rl-presence-chip empty">Personne d\'autre pour l\'instant</span>';
+      }
+    });
+  }
+}
+function rlPresenceStop(){
+  if(rlPresenceInterval){ clearInterval(rlPresenceInterval); rlPresenceInterval = null; }
+  if(rlPresenceUnsub){ rlPresenceUnsub(); rlPresenceUnsub = null; }
+  if(currentUser){
+    RL_PRESENCE_REF().doc(currentUser.uid).delete().catch(()=>{});
   }
 }
 
